@@ -104,7 +104,7 @@ app.get("/api/me", authRequired, async (req, res) => {
   if (accountType === "EMP") {
     // req.user.positionId มาจาก payload ตอน login
     const sqlUser = `SELECT e.EMPLOYEEID, e.FIRSTNAME, e.LASTNAME, e.USERNAME, e.POSITIONID
-         FROM EMPLOYEE e
+         FROM EMPLOYEES e
         WHERE e.ACCOUNT_ID = :id`;
     const userRow = (await db.query(sqlUser, { id: accountId })).rows[0];
     if (!userRow) {
@@ -112,8 +112,8 @@ app.get("/api/me", authRequired, async (req, res) => {
     }
     // ดึงสิทธิ์ของ positionId (จากตาราง POSITIONPERMISSION + PERMISSION)
     const sqlPerms = `SELECT p.PERMISSIONNAME
-         FROM POSITIONPERMISSION pp
-         JOIN PERMISSION p ON p.PERMISSIONID = pp.PERMISSIONID
+         FROM POSITIONPERMISSIONS pp
+         JOIN PERMISSIONS p ON p.PERMISSIONID = pp.PERMISSIONID
         WHERE pp.POSITIONID = :pid
         ORDER BY p.PERMISSIONID`;
     const perms = (await db.query(sqlPerms, { pid: userRow.POSITIONID })).rows;
