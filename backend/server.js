@@ -115,22 +115,26 @@ app.get("/api/me", authRequired, async (req, res) => {
   const { accountId, accountType } = req.user;
   console.log(accountId, accountType);
   if (accountType === "EMP") {
+    console.log("Before userRow");
     // req.user.positionId มาจาก payload ตอน login
     const sqlUser = `SELECT e.EMPLOYEEID, e.FIRSTNAME, e.LASTNAME, e.USERNAME, e.POSITIONID
          FROM EMPLOYEES e
         WHERE e.ACCOUNT_ID = :id`;
     const userRow = (await db.query(sqlUser, { id: accountId })).rows[0];
+    console.log("After userRow", userRow);
     if (!userRow) {
       return res.status(404).json({ message: "User not found" });
     }
+    console.log("Before sqlPerms");
     // ดึงสิทธิ์ของ positionId (จากตาราง POSITIONPERMISSION + PERMISSION)
     const sqlPerms = `SELECT p.PERMISSIONNAME
          FROM POSITIONPERMISSIONS pp
          JOIN PERMISSIONS p ON p.PERMISSIONID = pp.PERMISSIONID
         WHERE pp.POSITIONID = :pid
         ORDER BY p.PERMISSIONID`;
-    const perms = (await db.query(sqlPerms, { pid: userRow.POSITIONID })).rows;
 
+    const perms = (await db.query(sqlPerms, { pid: userRow.POSITIONID })).rows;
+    console.log("Afer perms");
     res.json({
       username: userRow.USERNAME,
       firstname: userRow.FIRSTNAME,
@@ -159,53 +163,65 @@ app.get("/api/me", authRequired, async (req, res) => {
     });
   }
 });
-     // select db.query  // อย่างอื่น execute      const result = await connection.execute(`SELECT * FROM EMPLOYEES`); 
+// select db.query  // อย่างอื่น execute      const result = await connection.execute(`SELECT * FROM EMPLOYEES`);
 /////////////////////////////////////////////////////////////////////////////////////
-app.get("/api/account",async (req,res) => { 
-  let connection; 
-   const sql = ` select a.ACCOUNT_ID , a.USERNAME , a.PASSWORD_HASH from account a `
-  try{ 
+app.get("/api/account", async (req, res) => {
+  let connection;
+  const sql = ` select a.ACCOUNT_ID , a.USERNAME , a.PASSWORD_HASH from account a `;
+  try {
     connection = await oracledb.getConnection();
-     const result = await connection.execute(sql);
-    console.log("dept",result)
-     res.json(result.rows); }catch(err)
-     { console.log(err); res.status(500).send("ไม่สำเร็จ"); } finally
-     { if(connection)
-      { await connection.close(); } 
-    } 
-  });
+    const result = await connection.execute(sql);
+    console.log("dept", result);
+    res.json(result.rows);
+  } catch (err) {
+    console.log(err);
+    res.status(500).send("ไม่สำเร็จ");
+  } finally {
+    if (connection) {
+      await connection.close();
+    }
+  }
+});
 //-------------------------------------------------------------------------------------------------------------------------------
-app.get("/api/position",async (req,res) => { 
-  let connection; 
-   const sql = ` select * from positions `
-  try{ 
+app.get("/api/position", async (req, res) => {
+  let connection;
+  const sql = ` select * from positions `;
+  try {
     connection = await oracledb.getConnection();
-     const result = await db.query(sql)
-    console.log("dept",result)
-     res.json(result.rows); }catch(err)
-     { console.log(err); res.status(500).send("ไม่สำเร็จ"); } finally
-     { if(connection)
-      { await connection.close(); } 
-    } 
-  });
+    const result = await db.query(sql);
+    console.log("dept", result);
+    res.json(result.rows);
+  } catch (err) {
+    console.log(err);
+    res.status(500).send("ไม่สำเร็จ");
+  } finally {
+    if (connection) {
+      await connection.close();
+    }
+  }
+});
 //-----------------------------------------------------------------------------------------------------------------------
-app.get("/api/department",async (req,res) => { 
-  let connection; 
-   const sql = ` select * from departments `
-  try{ 
+app.get("/api/department", async (req, res) => {
+  let connection;
+  const sql = ` select * from departments `;
+  try {
     connection = await oracledb.getConnection();
-     const result = await db.query(sql)
-    console.log("dept",result)
-     res.json(result.rows); }catch(err)
-     { console.log(err); res.status(500).send("ไม่สำเร็จ"); } finally
-     { if(connection)
-      { await connection.close(); } 
-    } 
-  });
+    const result = await db.query(sql);
+    console.log("dept", result);
+    res.json(result.rows);
+  } catch (err) {
+    console.log(err);
+    res.status(500).send("ไม่สำเร็จ");
+  } finally {
+    if (connection) {
+      await connection.close();
+    }
+  }
+});
 //--------------------------------------------------------------------------------------------
- app.get("/api/employee",async (req,res) => { 
-  let connection; 
-   const sql = `select e.employeeid, 
+app.get("/api/employee", async (req, res) => {
+  let connection;
+  const sql = `select e.employeeid, 
        e.firstname,
        e.lastname,
        a.username,
@@ -216,22 +232,26 @@ app.get("/api/department",async (req,res) => {
        from employees e , account a , departments d , positions p
        where (e.account_id = a.account_id) and 
        (e.departmentid=d.DEPARTMENTID) and
-       (e.POSITIONID = p.POSITIONID)`
-  try{ 
+       (e.POSITIONID = p.POSITIONID)`;
+  try {
     connection = await oracledb.getConnection();
-     const result = await db.query(sql)
-    console.log("hello",result)
-     res.json(result.rows); }catch(err)
-     { console.log(err); res.status(500).send("ไม่สำเร็จ"); } finally
-     { if(connection)
-      { await connection.close(); } 
-    } 
-  });
-     // --------------------------------------------------------------------------------------------------------------------//
-    app.post("/api/employees", async (req, res) => {
-  const { username, password, firstname, lastname, department, position } = req.body;
-  console.log("Received data:", req.body);  // ตรวจสอบข้อมูลที่รับจาก frontend
-        
+    const result = await db.query(sql);
+    console.log("hello", result);
+    res.json(result.rows);
+  } catch (err) {
+    console.log(err);
+    res.status(500).send("ไม่สำเร็จ");
+  } finally {
+    if (connection) {
+      await connection.close();
+    }
+  }
+});
+// --------------------------------------------------------------------------------------------------------------------//
+app.post("/api/employees", async (req, res) => {
+  const { username, password, firstname, lastname, department, position } =
+    req.body;
+  console.log("Received data:", req.body); // ตรวจสอบข้อมูลที่รับจาก frontend
 
   let connection;
   try {
@@ -271,7 +291,7 @@ app.get("/api/department",async (req,res) => {
         username,
         password,
         ACCOUNT_TYPE: "EMP",
-        account_id: { dir: oracledb.BIND_OUT, type: oracledb.NUMBER }
+        account_id: { dir: oracledb.BIND_OUT, type: oracledb.NUMBER },
       }
     );
 
@@ -295,7 +315,7 @@ app.get("/api/department",async (req,res) => {
         password: password,
         departmentid: department,
         positionid: position,
-        account_id: accountId
+        account_id: accountId,
       }
     );
 
@@ -307,35 +327,37 @@ app.get("/api/department",async (req,res) => {
       account: {
         username: username,
         password: password,
-        account_id: accountId
+        account_id: accountId,
       },
       employee: {
         employeeid: newid,
         firstname: firstname,
-        lastname: lastname
-      }
+        lastname: lastname,
+      },
     });
-
   } catch (err) {
     console.error("Database Error:", err);
     if (connection) {
-      await connection.execute("ROLLBACK");  // ถ้ามีข้อผิดพลาดให้ rollback การทำงาน
+      await connection.execute("ROLLBACK"); // ถ้ามีข้อผิดพลาดให้ rollback การทำงาน
     }
     res.status(500).send("DB Insert Error");
   } finally {
-    if (connection) await connection.close();  // ปิดการเชื่อมต่อฐานข้อมูล
+    if (connection) await connection.close(); // ปิดการเชื่อมต่อฐานข้อมูล
   }
 });
 
 /////////////////////////////////////////////////////////////////////////////////////
 app.put("/api/employees/:id", async (req, res) => {
-  const employeeId = req.params.id;  // ใช้ ID จาก URL ในการค้นหาข้อมูลพนักงาน
-  const { username, password, firstname, lastname, department, position } = req.body;  // รับข้อมูลที่อัปเดต
+  const employeeId = req.params.id; // ใช้ ID จาก URL ในการค้นหาข้อมูลพนักงาน
+  const { username, password, firstname, lastname, department, position } =
+    req.body; // รับข้อมูลที่อัปเดต
 
   console.log("Received data for update:", req.body);
 
   if (!username || !firstname || !lastname || !department || !position) {
-    return res.status(400).json({ error: 'Missing required fields for update' });
+    return res
+      .status(400)
+      .json({ error: "Missing required fields for update" });
   }
 
   let connection;
@@ -375,7 +397,7 @@ app.put("/api/employees/:id", async (req, res) => {
         lastname,
         departmentid: department,
         positionid: position,
-        employeeid: employeeId
+        employeeid: employeeId,
       }
     );
 
@@ -387,7 +409,7 @@ app.put("/api/employees/:id", async (req, res) => {
       {
         username,
         password,
-        employeeid: employeeId
+        employeeid: employeeId,
       }
     );
 
@@ -402,44 +424,40 @@ app.put("/api/employees/:id", async (req, res) => {
         firstname,
         lastname,
         department,
-        position
-      }
+        position,
+      },
     });
-
   } catch (err) {
     console.error("Database Error:", err);
     if (connection) {
-      await connection.execute("ROLLBACK");  // Rollback ถ้ามีข้อผิดพลาด
+      await connection.execute("ROLLBACK"); // Rollback ถ้ามีข้อผิดพลาด
     }
     res.status(500).send("DB Update Error");
   } finally {
-    if (connection) await connection.close();  // ปิดการเชื่อมต่อฐานข้อมูล
+    if (connection) await connection.close(); // ปิดการเชื่อมต่อฐานข้อมูล
   }
 });
 
 /////////////////////////////////////////////////////////////////////////////////////
-app.delete("/api/employees/:id",async (req,res)=>{
+app.delete("/api/employees/:id", async (req, res) => {
   const employeeId = req.params.id;
-  let connection
-  try{
-       connection = await oracledb.getConnection()
-       await connection.execute(`DELETE FROM Employees WHERE employeeid = :employeeid`,
-        {employeeId},
-        {autoCommit: true}
-       )
-      res.json({ message: "Employee deleted successfully!" });    
-  }catch(err){
-     console.error(err);
+  let connection;
+  try {
+    connection = await oracledb.getConnection();
+    await connection.execute(
+      `DELETE FROM Employees WHERE employeeid = :employeeid`,
+      { employeeId },
+      { autoCommit: true }
+    );
+    res.json({ message: "Employee deleted successfully!" });
+  } catch (err) {
+    console.error(err);
     res.status(500).send("DB Delete Error");
-  }finally{
-     if(connection)  await connection.close();
+  } finally {
+    if (connection) await connection.close();
   }
 });
 /////////////////////////////////////////////////////////////////////////////////////
-
-   
-
-
 
 app.post("/api/positions", authRequired, async (req, res) => {
   console.log(req.body);

@@ -17,7 +17,7 @@ export const NAV_ITEMS = [
   {
     key: "emp",
     label: "จัดการพนักงาน",
-    // path: "/employees",
+    path: "/employees",
     icon: "🧑‍💼",
     requireAll: ["CanManageEmployee"],
   },

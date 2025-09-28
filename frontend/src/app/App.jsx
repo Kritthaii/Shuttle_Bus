@@ -12,6 +12,7 @@ import Booking from "../pages/user/Booking";
 import MyBooking from "../pages/user/MyBooking.jsx";
 import PositionPermissionManage from "../pages/admin/PositionPermissionManage";
 import PositionManage from "../pages/admin/PositionManage";
+import UsersManage from "../pages/admin/UsersManage.jsx";
 export default function App() {
   return (
     <AuthProvider>
@@ -66,6 +67,12 @@ export default function App() {
           >
             <Route element={<MainLayout />}>
               <Route path="/position-manage" element={<PositionManage />} />
+            </Route>
+          </Route>
+
+          <Route element={<ProtectedRoute needAll={["CanManageEmployee"]} />}>
+            <Route element={<MainLayout />}>
+              <Route path="/employees" element={<UsersManage />} />
             </Route>
           </Route>
         </Routes>
