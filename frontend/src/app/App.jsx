@@ -9,7 +9,7 @@ import Home from "../pages/Home";
 import Unauthorized from "../pages/Unauthorized";
 import NotFound from "../pages/NotFound";
 import Booking from "../pages/user/Booking";
-import UserDashboard from "../pages/user/UserDashboard";
+import MyBooking from "../pages/user/MyBooking.jsx";
 import PositionPermissionManage from "../pages/admin/PositionPermissionManage";
 import PositionManage from "../pages/admin/PositionManage";
 export default function App() {
@@ -37,7 +37,7 @@ export default function App() {
               <Route path="/bookings" element={<Booking />} />
             </Route>
             <Route element={<MainLayout />}>
-              <Route path="/userdashboard" element={<UserDashboard />} />
+              <Route path="/mybookings" element={<MyBooking />} />
             </Route>
           </Route>
           <Route

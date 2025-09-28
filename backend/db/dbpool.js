@@ -47,14 +47,5 @@ async function query(sql, binds = {}, opts = {}) {
     if (conn) await conn.close();
   }
 }
-async function commit() {
-  if (conn) {
-    try {
-      await conn.commit();
-    } catch (err) {
-      console.error("Commit error", err);
-      throw err;
-    }
-  }
-}
-module.exports = { initialize, close, query };
+
+module.exports = { initialize, query };

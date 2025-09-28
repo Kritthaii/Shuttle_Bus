@@ -16,7 +16,7 @@ export default function AuthProvider({ children }) {
     try {
       const response = await api.get("/api/me");
       setMe(response.data);
-      console.log(response.data);
+      console.log("me", response.data);
     } catch (error) {
       setMe(null);
     } finally {
