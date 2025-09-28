@@ -4,12 +4,12 @@ const app = express();
 const cors = require("cors");
 dotenv.config();
 const port = process.env.PORT || 3000;
-const db = require("./db/dbpool");
+
 const oracledb = require("oracledb");
 const jwt = require("jsonwebtoken");
 const cookieParser = require("cookie-parser");
 const { authRequired } = require("./middleware/auth");
-
+const bookingRoutes = require("./booking.js");
 app.use(
   cors({
     origin: "http://localhost:5173",
@@ -20,10 +20,15 @@ app.use(cookieParser());
 app.use(express.json()); // Middleware to parse JSON request bodies
 const clientLibDir =
   process.platform === "win32"
-    ? "C:\\oracle\\instantclient_23_9" // <-- change this path
+    ? "C:\\oracle1\\instantclient_23_9" // <-- change this path
     : "/opt/oracle/instantclient_11_2"; // <-- change for Linux
 
-oracledb.initOracleClient({ libDir: clientLibDir });
+// oracledb.initOracleClient({ libDir: "C:\\oracle1\\instantclient_23_9" });
+// console.log("Client version:", oracledb.oracleClientVersionString);
+
+const db = require("./db/dbpool");
+
+app.use("/api", bookingRoutes);
 
 app.get("/api/users", async (req, res) => {
   const page = Math.max(parseInt(req.query.page || "1"), 1);
@@ -31,7 +36,7 @@ app.get("/api/users", async (req, res) => {
   const offset = (page - 1) * limit;
 
   try {
-    const sql = `
+    const sql = ` 
      SELECT USERID, FIRSTNAME, LASTNAME
   FROM (
     SELECT USERID, FIRSTNAME, LASTNAME,
@@ -58,6 +63,14 @@ app.get("/api/users", async (req, res) => {
     console.log(err);
   }
 });
+
+app.get("/api/stops", async (req, res) => {
+  const rs = await db.query(
+    "SELECT STOPID, STOPNAME FROM STOP ORDER BY STOPID"
+  );
+  res.json(rs.rows); // [{STOPID:1, STOPNAME:'MUT'}, ...]
+});
+
 app.post("/api/login", async (req, res) => {
   const { username, password } = req.body;
   console.log(username, password);
@@ -379,6 +392,52 @@ FROM EMPLOYEES WHERE EMPLOYEEID = :id`,
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: "Failed to fetch employee" });
+  }
+});
+
+//////////////////////////////////////////////////// Booking//////////////////////////////////////////
+
+app.post("/routes/search", async (req, res) => {
+  try {
+    const { startStop, endStop } = req.body || {};
+    if (!startStop || !endStop) {
+      return res
+        .status(400)
+        .json({ message: "startStop และ endStop จำเป็นต้องระบุ" });
+    }
+
+    const sql = `
+      SELECT
+        r.ROUTEID,
+        r.ROUTENAME,
+        s1.STOPNAME     AS STARTSTOP,
+        rs1.STOPORDER   AS STARTORDER,
+        s2.STOPNAME     AS ENDSTOP,
+        rs2.STOPORDER   AS ENDORDER,
+        (
+          SELECT SUM(NVL(rsx.TIMETONEXT, 0))
+          FROM ROUTE_STOP rsx
+          WHERE rsx.ROUTEID = r.ROUTEID
+            AND rsx.STOPORDER >= rs1.STOPORDER
+            AND rsx.STOPORDER <  rs2.STOPORDER
+        ) AS TOTAL_MINUTES
+      FROM ROUTE r
+      JOIN ROUTE_STOP rs1 ON r.ROUTEID = rs1.ROUTEID
+      JOIN STOP s1        ON s1.STOPID  = rs1.STOPID
+      JOIN ROUTE_STOP rs2 ON r.ROUTEID = rs2.ROUTEID
+      JOIN STOP s2        ON s2.STOPID  = rs2.STOPID
+      WHERE
+        UPPER(TRIM(s1.STOPNAME)) = UPPER(TRIM(:startStop))
+        AND UPPER(TRIM(s2.STOPNAME)) = UPPER(TRIM(:endStop))
+        AND rs1.STOPORDER < rs2.STOPORDER
+      ORDER BY r.ROUTEID
+    `;
+
+    const rows = (await db.query(sql, { startStop, endStop })).rows;
+    return res.json(rows);
+  } catch (err) {
+    console.error("search routes error:", err);
+    return res.status(500).json({ message: "Server error" });
   }
 });
 
