@@ -29,6 +29,20 @@ export const NAV_ITEMS = [
     requireAll: ["CanManageDriver"],
   },
   {
+    key: "position",
+    label: "จัดการตำแหน่ง",
+    path: "/position-manage",
+    icon: "🗺️",
+    requireAll: ["CanManagePositionPermissions"],
+  },
+  {
+    key: "posper",
+    label: "จัดการสิทธ์ของตำแหน่ง",
+    path: "/position-permission-manage",
+    icon: "🗺️",
+    requireAll: ["CanManagePositionPermissions"],
+  },
+  {
     key: "routes",
     label: "จัดการเส้นทาง",
     // path: "/routes",

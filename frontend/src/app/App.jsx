@@ -10,6 +10,8 @@ import Unauthorized from "../pages/Unauthorized";
 import NotFound from "../pages/NotFound";
 import Booking from "../pages/user/Booking";
 import UserDashboard from "../pages/user/UserDashboard";
+import PositionPermissionManage from "../pages/admin/PositionPermissionManage";
+import PositionManage from "../pages/admin/PositionManage";
 export default function App() {
   return (
     <AuthProvider>
@@ -25,9 +27,7 @@ export default function App() {
             </Route>
 
             {/* admin only */}
-            <Route element={<MainLayout />}>
-              <Route path="/admindashboard" element={<AdminDashboard />} />
-            </Route>
+
             <Route element={<MainLayout />}>
               <Route path="*" element={<NotFound />} />
             </Route>
@@ -38,6 +38,34 @@ export default function App() {
             </Route>
             <Route element={<MainLayout />}>
               <Route path="/userdashboard" element={<UserDashboard />} />
+            </Route>
+          </Route>
+          <Route
+            element={<ProtectedRoute needAll={["CanViewAdminDashboard"]} />}
+          >
+            <Route element={<MainLayout />}>
+              <Route path="/admindashboard" element={<AdminDashboard />} />
+            </Route>
+          </Route>
+          <Route
+            element={
+              <ProtectedRoute needAll={["CanManagePositionPermissions"]} />
+            }
+          >
+            <Route element={<MainLayout />}>
+              <Route
+                path="/position-permission-manage"
+                element={<PositionPermissionManage />}
+              />
+            </Route>
+          </Route>
+          <Route
+            element={
+              <ProtectedRoute needAll={["CanManagePositionPermissions"]} />
+            }
+          >
+            <Route element={<MainLayout />}>
+              <Route path="/position-manage" element={<PositionManage />} />
             </Route>
           </Route>
         </Routes>
