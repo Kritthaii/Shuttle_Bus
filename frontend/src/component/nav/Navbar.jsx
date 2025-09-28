@@ -2,22 +2,20 @@ import { Link, NavLink, useLocation } from "react-router-dom";
 import { NAV_ITEMS } from "../nav/navConfig.js";
 import { canAll, canAny } from "../../auth/PermHelper.jsx";
 import { useAuth } from "../../auth/AuthContext.jsx";
-
+import { useNavigate } from "react-router-dom";
 export default function Navbar() {
   const { me } = useAuth();
   const { pathname } = useLocation();
   const perms = me?.permissions || [];
   const { logout } = useAuth();
-  {
-    console.log("me in Navbar", me);
-  }
+
   const visibleNavItems = NAV_ITEMS.filter((item) => {
     if (item.requireAll && !canAll(perms, ...item.requireAll)) return false;
     if (item.requireAny && !canAny(perms, ...item.requireAny)) return false;
     return true;
   });
   return (
-    <aside>
+    <aside className="sticky top-0 w-auto bg-white border-r">
       <div>
         <nav>
           <div className="bg-red-800 p-4 flex justify-center items-center">
@@ -59,7 +57,7 @@ export default function Navbar() {
             </NavLink>
           ))}
           {visibleNavItems.length === 0 && (
-            <div style={{ color: "#888" }}>ไม่มีเมนูสำหรับสิทธิ์ของคุณ5555</div>
+            <div style={{ color: "#888" }}>ไม่มีเมนูสำหรับสิทธิ์ของคุณ</div>
           )}
         </nav>
         <div>

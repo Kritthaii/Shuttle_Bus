@@ -1,6 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
 import axios from "axios";
-
 const api = axios.create({
   baseURL: "http://localhost:5000",
   withCredentials: true,
@@ -17,7 +16,7 @@ export default function AuthProvider({ children }) {
     try {
       const response = await api.get("/api/me");
       setMe(response.data);
-      console.log(response.data);
+      console.log("me", response.data);
     } catch (error) {
       setMe(null);
     } finally {

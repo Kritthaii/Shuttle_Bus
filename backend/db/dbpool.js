@@ -47,4 +47,5 @@ async function query(sql, binds = {}, opts = {}) {
     if (conn) await conn.close();
   }
 }
-module.exports = { initialize, close, query };
+
+module.exports = { initialize, query };
