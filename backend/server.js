@@ -554,22 +554,60 @@ GROUP BY p.POSITIONID ,p.POSITIONNAME ORDER BY POSITIONNAME  `;
   }
 });
 
-app.put("/api/position/:positionid", authRequired, async (req, res) => {
-  const positionid = req.params.positionid;
+app.put("/api/positions/:positionid", authRequired, async (req, res) => {
+  // ✅ ให้ path ตรงกับฝั่ง frontend ที่เรียก /positions/:id
+  let conn;
   try {
-    const conn = await oracledb.getConnection();
-    await conn.execute(
+    // ✅ validate
+    const positionid = Number(req.params.positionid);
+    const positionName = (req.body?.POSITIONNAME || "").trim();
+
+    if (!Number.isInteger(positionid)) {
+      return res.status(400).json({ message: "positionid ต้องเป็นตัวเลข" });
+    }
+    if (!positionName) {
+      return res.status(400).json({ message: "กรุณาระบุ POSITIONNAME" });
+    }
+
+    conn = await oracledb.getConnection();
+
+    // ตัวอย่าง: ถ้าต้องการกันชื่อซ้ำ (optional)
+    // const dup = await conn.execute(
+    //   `SELECT 1 FROM POSITIONS WHERE UPPER(POSITIONNAME)=:n AND POSITIONID<>:id`,
+    //   { n: positionName.toUpperCase(), id: positionid }
+    // );
+    // if (dup.rows?.length) {
+    //   return res.status(409).json({ message: "ชื่อตำแหน่งซ้ำ" });
+    // }
+
+    const result = await conn.execute(
       `UPDATE POSITIONS
-                      SET POSITIONNAME='MONKEY'
-                      WHERE POSITIONID=:positionid`,
-      { positionid: positionid },
-      { autoCommit: false }
+         SET POSITIONNAME = :positionName
+       WHERE POSITIONID   = :positionid`,
+      { positionName, positionid },
+      { autoCommit: true } // ✅ ไม่ต้อง commit/rollback เอง
     );
-    await conn.commit();
+
+    if (result.rowsAffected === 0) {
+      return res.status(404).json({ message: "ไม่พบตำแหน่งที่ต้องการแก้ไข" });
+    }
+
+    return res.json({
+      message: "Successful",
+      positionId: positionid,
+      positionName,
+    });
   } catch (error) {
-    conn.rollback();
-    console.log(error);
-    res.json(error);
+    console.error(error);
+    // ถ้าใช้ autoCommit:true แล้ว error จะไม่ทิ้งค้าง transaction
+    return res
+      .status(500)
+      .json({ message: "Update failed", error: String(error) });
+  } finally {
+    // ✅ ปล่อยคอนเนกชันกลับ pool เสมอ
+    try {
+      await conn?.close?.();
+    } catch {}
   }
 });
 
