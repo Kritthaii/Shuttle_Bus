@@ -10,6 +10,7 @@ const jwt = require("jsonwebtoken");
 const cookieParser = require("cookie-parser");
 const { authRequired } = require("./middleware/auth");
 const bookingRoutes = require("./booking.js");
+const driver = require("./driver.js");
 app.use(
   cors({
     origin: "http://localhost:5173",
@@ -29,6 +30,7 @@ const clientLibDir =
 const db = require("./db/dbpool");
 
 app.use("/api", bookingRoutes);
+app.use("/api", driver);
 
 app.get("/api/users", async (req, res) => {
   const page = Math.max(parseInt(req.query.page || "1"), 1);

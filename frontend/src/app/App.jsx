@@ -13,6 +13,8 @@ import MyBooking from "../pages/user/MyBooking.jsx";
 import PositionPermissionManage from "../pages/admin/PositionPermissionManage";
 import PositionManage from "../pages/admin/PositionManage";
 import UsersManage from "../pages/admin/UsersManage.jsx";
+import DriverDashboard from "../pages/driver/DriverDashboard.jsx";
+import DriverManifest from "../pages/driver/DriverManifest.jsx";
 export default function App() {
   return (
     <AuthProvider>
@@ -32,15 +34,18 @@ export default function App() {
             <Route element={<MainLayout />}>
               <Route path="*" element={<NotFound />} />
             </Route>
+            <Route element={<ProtectedRoute needAll={["CanReservation"]} />}>
+              {/* user only */}
+              <Route element={<MainLayout />}>
+                <Route path="/bookings" element={<Booking />} />
+              </Route>
 
-            {/* user only */}
-            <Route element={<MainLayout />}>
-              <Route path="/bookings" element={<Booking />} />
-            </Route>
-            <Route element={<MainLayout />}>
-              <Route path="/mybookings" element={<MyBooking />} />
+              <Route element={<MainLayout />}>
+                <Route path="/mybookings" element={<MyBooking />} />
+              </Route>
             </Route>
           </Route>
+
           <Route
             element={<ProtectedRoute needAll={["CanViewAdminDashboard"]} />}
           >
@@ -67,6 +72,15 @@ export default function App() {
           >
             <Route element={<MainLayout />}>
               <Route path="/position-manage" element={<PositionManage />} />
+            </Route>
+          </Route>
+
+          <Route element={<ProtectedRoute needAll={["DriverPermission"]} />}>
+            <Route element={<MainLayout />}>
+              <Route path="/driver-dashboard" element={<DriverDashboard />} />
+            </Route>
+            <Route element={<MainLayout />}>
+              <Route path="/driver/job" element={<DriverManifest />} />
             </Route>
           </Route>
 

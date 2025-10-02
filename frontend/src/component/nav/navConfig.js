@@ -49,20 +49,20 @@ export const NAV_ITEMS = [
   //   icon: "🗺️",
   //   requireAny: ["CanManageRoutes", "CanViewReports"],
   // },
-  // {
-  //   key: "report",
-  //   label: "รายงาน",
-  //   // path: "/reports",
-  //   icon: "📊",
-  //   requireAll: ["CanViewReports"],
-  // },
   {
-    key: "perms",
-    label: "สิทธิ์การใช้งาน",
-    path: "/permissions",
-    icon: "🔐",
-    requireAll: ["CanManagePermissions"],
+    key: "report",
+    label: "รายงาน",
+    path: "/reports",
+    icon: "📊",
+    requireAll: ["CanViewReports"],
   },
+  // {
+  //   key: "perms",
+  //   label: "สิทธิ์การใช้งาน",
+  //   path: "/permissions",
+  //   icon: "🔐",
+  //   requireAll: ["CanManagePermissions"],
+  // },
   {
     key: "booking",
     label: "การจอง",
@@ -70,4 +70,19 @@ export const NAV_ITEMS = [
     icon: "📝",
     requireAll: ["CanReservation"],
   },
+  {
+    key: "driverdash",
+    label: "ตารางงาน",
+    path: "/driver-dashboard",
+    icon: "📝",
+    requireAll: ["DriverPermission"],
+  },
+
+  // {
+  //   key: "booking",
+  //   label: "การจอง",
+  //   path: "/bookings",
+  //   icon: "📝",
+  //   requireAll: ["CanReservation"],
+  // },
 ];

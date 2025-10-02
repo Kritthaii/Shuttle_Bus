@@ -13,25 +13,25 @@ const clientLibDir =
 oracledb.initOracleClient({ libDir: clientLibDir });
 // const conn = await oracledb.getConnection();
 
-function buildStatusWhere(status) {
-  // mapping ค่าที่มาจาก frontend เช่น upcoming / completed / cancelled
-  switch (status) {
-    case "upcoming":
-      // แสดงการเดินทางที่ยังไม่ถึงเวลา และยังจองอยู่
-      return "AND r.RESERVATIONSTATUSID = 1 AND r.SCHEDULEDATETIME > SYSDATE";
-    case "completed":
-      // แสดงการเดินทางที่เสร็จสิ้น
-      return "AND r.RESERVATIONSTATUSID = 2";
-    case "cancelled":
-      // แสดงการจองที่ถูกยกเลิก
-      return "AND r.RESERVATIONSTATUSID = 3";
-    case "noshow":
-      return "AND r.RESERVATIONSTATUSID = 4";
-    default:
-      // ถ้าไม่ส่ง status จะให้เห็นทั้งหมด
-      return "";
-  }
-}
+// function buildStatusWhere(status) {
+//   // mapping ค่าที่มาจาก frontend เช่น upcoming / completed / cancelled
+//   switch (status) {
+//     case "upcoming":
+//       // แสดงการเดินทางที่ยังไม่ถึงเวลา และยังจองอยู่
+//       return "AND r.RESERVATIONSTATUSID = 1 AND r.SCHEDULEDATETIME > SYSDATE";
+//     case "completed":
+//       // แสดงการเดินทางที่เสร็จสิ้น
+//       return "AND r.RESERVATIONSTATUSID = 2";
+//     case "cancelled":
+//       // แสดงการจองที่ถูกยกเลิก
+//       return "AND r.RESERVATIONSTATUSID = 3";
+//     case "noshow":
+//       return "AND r.RESERVATIONSTATUSID = 4";
+//     default:
+//       // ถ้าไม่ส่ง status จะให้เห็นทั้งหมด
+//       return "";
+//   }
+// }
 
 ///  ดีงรายการจองของ User
 router.get("/my-reservations", authRequired, async (req, res) => {
@@ -50,6 +50,7 @@ router.get("/my-reservations", authRequired, async (req, res) => {
 
     const status = String((req.query.status || "all").toLowerCase());
 
+    console.log("status = ", status);
     // ต่อ fragment เฉพาะค่าที่อนุญาต (whitelist)
     let statusWhere = "";
     switch (status) {
@@ -69,7 +70,7 @@ router.get("/my-reservations", authRequired, async (req, res) => {
       default:
         statusWhere = ``; // ไม่กรองเพิ่ม
     }
-
+    console.log("User id", userRow.USERID);
     const sql = `
       SELECT
         r.RESERVATIONID,
@@ -91,12 +92,13 @@ router.get("/my-reservations", authRequired, async (req, res) => {
       JOIN STOP      s1  ON s1.STOPID   = rs1.STOPID
       JOIN ROUTE_STOP rs2 ON rs2.ROUTEID = r.ROUTEID AND rs2.STOPORDER = r.DROPOFFSTOPORDER
       JOIN STOP      s2  ON s2.STOPID   = rs2.STOPID
-      WHERE r.USERID = :uid
-        ${statusWhere}
+      WHERE r.USERID = :userid
+      ${statusWhere}
       ORDER BY r.SCHEDULEDATETIME DESC
     `;
+    const userid = userRow.USERID;
+    const rows = (await db.query(sql, { userid })).rows;
 
-    const rows = (await db.query(sql, { uid: userRow.USERID })).rows;
     res.json(
       rows.map((x) => ({
         reservationId: x.RESERVATIONID,
@@ -140,13 +142,13 @@ router.post("/booking/cancel/:id", authRequired, async (req, res) => {
       UPDATE RESERVATION
       SET RESERVATIONSTATUSID = 3  -- Cancelled
       WHERE RESERVATIONID = :rid
-        AND USERID = :uid
+        AND USERID = :userid
         AND RESERVATIONSTATUSID = 1
         AND SCHEDULEDATETIME > SYSDATE + (20/1440)
     `;
     const rs = await db.query(
       sql,
-      { rid, uid: u.USERID },
+      { rid, userid: u.USERID },
       { autoCommit: true }
     );
     if (rs.rowsAffected === 0)
@@ -189,7 +191,8 @@ router.get("/booking/qrcode/:id", authRequired, async (req, res) => {
       width: 320, //ความกว้างภาพ (พิกเซล) ของ PNG ที่สร้าง
       margin: 1, //ขอบขาวรอบ QR (modules) ยิ่งมากยิ่งอ่านง่ายขึ้นบนพื้นหลังรก ๆ
     });
-    res.json({ dataUrl }); // ส่ง qr code  กลับไป
+    console.log(row);
+    res.json({ dataUrl, qrCode: row.QRCODE }); // ส่ง qr code  กลับไป
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: "Server error" });
@@ -300,8 +303,10 @@ router.post("/booking/options", async (req, res) => {
         JOIN BUSTYPE bt ON bt.BUSTYPEID  = b.BUSTYPEID
         WHERE s.ROUTEID = :routeId
           AND s.SCHEDULEDATETIME >= :minTime
+          AND s.STATUS = 'Pending'
         ORDER BY s.SCHEDULEDATETIME
       `;
+
       const schedRows = (
         await db.query(schedSql, {
           routeId,
